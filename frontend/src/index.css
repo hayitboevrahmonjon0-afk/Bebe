@@ -385,3 +385,46 @@ button {
   text-align: center;
   font-size: 11px;
 }
+.loading-screen,
+.error-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.loading-bottle {
+  font-size: 80px;
+  animation: bottle-loading 1.5s linear infinite;
+}
+
+.loading-screen h2,
+.error-screen h2 {
+  margin-top: 20px;
+  font-size: 22px;
+}
+
+.loading-screen p,
+.error-screen p {
+  margin-top: 8px;
+  color: #938aa5;
+  font-size: 14px;
+  max-width: 320px;
+}
+
+.error-icon {
+  font-size: 60px;
+}
+
+@keyframes bottle-loading {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
