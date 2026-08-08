@@ -84,23 +84,127 @@ function App() {
           <span>🪙</span>
           <strong>{balance}</strong>
         </div>
+import { useEffect, useState } from "react";
+import {
+  getTelegramUser,
+  initTelegram,
+  haptic,
+} from "./services/telegram";
+import type { TelegramUser } from "./types/telegram";
+import RoomSelector from "./components/RoomSelector";
+
+const players = [
+  { name: "Aziz", avatar: "😎" },
+  { name: "Madina", avatar: "👩" },
+  { name: "Jasur", avatar: "🧑" },
+  { name: "Malika", avatar: "👩‍🦱" },
+];
+
+function App() {
+  const [user, setUser] = useState<TelegramUser | null>(null);
+  const [balance, setBalance] = useState(1000);
+
+  const [room, setRoom] = useState("Asosiy xona");
+  const [showRooms, setShowRooms] = useState(false);
+
+  const [rotation, setRotation] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    initTelegram();
+
+    const telegramUser = getTelegramUser();
+
+    if (telegramUser) {
+      setUser(telegramUser);
+    }
+  }, []);
+
+  const handleBottleClick = () => {
+    if (spinning || balance < 10) {
+      return;
+    }
+
+    haptic("heavy");
+
+    setSelectedPlayer(null);
+    setSpinning(true);
+
+    setBalance((current) => current - 10);
+
+    const randomPlayer =
+      players[Math.floor(Math.random() * players.length)];
+
+    const extraRotation =
+      1440 + Math.floor(Math.random() * 360);
+
+    setRotation((current) => current + extraRotation);
+
+    setTimeout(() => {
+      setSpinning(false);
+      setSelectedPlayer(randomPlayer.name);
+      haptic("success");
+    }, 3000);
+  };
+
+  const handleRoomSelect = (selectedRoom: {
+    id: string;
+    name: string;
+    players: number;
+    emoji: string;
+  }) => {
+    setRoom(selectedRoom.name);
+    setShowRooms(false);
+
+    haptic("light");
+  };
+
+  return (
+    <main className="home">
+      <header className="topbar">
+        <div className="profile">
+          <div className="avatar">
+            {user?.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={user.first_name}
+              />
+            ) : (
+              <span>
+                {user?.first_name?.charAt(0) ?? "👤"}
+              </span>
+            )}
+          </div>
+
+          <div>
+            <p className="hello">Salom 👋</p>
+            <h2>{user?.first_name ?? "Mehmon"}</h2>
+          </div>
+        </div>
+
+        <div className="balance">
+          <span>🪙</span>
+          <strong>{balance}</strong>
+        </div>
       </header>
 
       <section className="room-card">
         <div>
-          <span className="room-label">Sizning xonangiz</span>
+          <span className="room-label">
+            Sizning xonangiz
+          </span>
+
           <h3>🏠 {room}</h3>
         </div>
 
         <button
           className="change-room"
-          onClick={() =>
-            setRoom(
-              room === "Asosiy xona"
-                ? "Do‘stlar xonasi"
-                : "Asosiy xona"
-            )
-          }
+          onClick={() => {
+            setShowRooms(true);
+            haptic("light");
+          }}
         >
           Almashtirish
         </button>
@@ -112,6 +216,7 @@ function App() {
 
           <div>
             <h1>Spin the Bottle</h1>
+
             <p>
               {spinning
                 ? "Shisha aylanmoqda..."
@@ -128,6 +233,9 @@ function App() {
             onClick={handleBottleClick}
             disabled={spinning || balance < 10}
             aria-label="Shishani aylantirish"
+            style={{
+              transform: `rotate(${rotation}deg)`,
+            }}
           >
             🍾
           </button>
@@ -136,7 +244,10 @@ function App() {
         {selectedPlayer && !spinning && (
           <div className="selected-player">
             🎯 Tanlangan o‘yinchi:
-            <strong>{selectedPlayer}</strong>
+
+            <strong>
+              {selectedPlayer}
+            </strong>
           </div>
         )}
 
@@ -148,7 +259,10 @@ function App() {
       <section className="players">
         <div className="section-title">
           <h2>👥 O‘yinchilar</h2>
-          <span>{players.length} kishi</span>
+
+          <span>
+            {players.length} kishi
+          </span>
         </div>
 
         <div className="player-list">
@@ -166,6 +280,14 @@ function App() {
           ))}
         </div>
       </section>
+
+      {showRooms && (
+        <RoomSelector
+          currentRoom={room}
+          onSelect={handleRoomSelect}
+          onClose={() => setShowRooms(false)}
+        />
+      )}
     </main>
   );
 }
