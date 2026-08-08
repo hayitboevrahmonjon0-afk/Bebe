@@ -269,3 +269,119 @@ button {
     height: 210px;
   }
 }
+.room-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.room-modal {
+  width: 100%;
+  max-width: 520px;
+  padding: 20px;
+  border-radius: 26px 26px 18px 18px;
+  background: #181228;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.room-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-label {
+  color: #8d849d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.room-modal-header h2 {
+  margin-top: 3px;
+  font-size: 21px;
+}
+
+.close-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #29203c;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.room-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.room-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid transparent;
+  border-radius: 17px;
+  background: #211936;
+  color: #ffffff;
+  text-align: left;
+}
+
+.room-option.active {
+  border-color: #7c3aed;
+  background: #261b43;
+}
+
+.room-emoji {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #302448;
+  font-size: 22px;
+}
+
+.room-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.room-info strong {
+  font-size: 14px;
+}
+
+.room-info small {
+  color: #8e859d;
+  font-size: 11px;
+}
+
+.selected-mark {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #7c3aed;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.room-note {
+  margin-top: 15px;
+  color: #81788f;
+  text-align: center;
+  font-size: 11px;
+}
