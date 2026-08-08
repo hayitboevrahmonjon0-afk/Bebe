@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  telegramId    BigInt   @unique
+  username      String?
+  firstName     String
+  lastName      String?
+  photoUrl      String?
+
+  balance       Int      @default(0)
+
+  dailyStreak   Int      @default(0)
+  lastBonusAt   DateTime?
+
+  level         Int      @default(1)
+  experience    Int      @default(0)
+
+  referralCode  String   @unique
+  referredById  String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  referredBy    User?    @relation(
+    "UserReferrals",
+    fields: [referredById],
+    references: [id]
+  )
+
+  referrals     User[]   @relation("UserReferrals")
+
+  rooms         RoomMember[]
+  giftsSent     GiftTransaction[] @relation("GiftsSent")
+  giftsReceived GiftTransaction[] @relation("GiftsReceived")
+}
+
+model Room {
+  id          String       @id @default(cuid())
+  name        String
+  emoji       String       @default("🎮")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  members     RoomMember[]
+}
+
+model RoomMember {
+  id        String   @id @default(cuid())
+
+  userId    String
+  roomId    String
+
+  joinedAt  DateTime @default(now())
+
+  user      User     @relation(
+    fields: [userId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  room      Room     @relation(
+    fields: [roomId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([userId, roomId])
+}
+
+model Gift {
+  id          String   @id @default(cuid())
+  name        String
+  emoji       String
+  price       Int
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  transactions GiftTransaction[]
+}
+
+model GiftTransaction {
+  id          String   @id @default(cuid())
+
+  senderId    String
+  receiverId  String
+  giftId      String
+
+  amount      Int
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation(
+    "GiftsSent",
+    fields: [senderId],
+    references: [id]
+  )
+
+  receiver    User     @relation(
+    "GiftsReceived",
+    fields: [receiverId],
+    references: [id]
+  )
+
+  gift        Gift     @relation(
+    fields: [giftId],
+    references: [id]
+  )
+}
