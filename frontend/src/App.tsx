@@ -211,11 +211,278 @@ function App() {
       </section>
 
       <section className="game-card">
+import { useEffect, useState } from "react";
+
+import {
+  getTelegramUser,
+  getTelegramInitData,
+  initTelegram,
+  haptic,
+} from "./services/telegram";
+
+import { authenticateTelegram } from "./services/api";
+
+import type { TelegramUser } from "./types/telegram";
+
+import RoomSelector from "./components/RoomSelector";
+
+const players = [
+  { name: "Aziz", avatar: "😎" },
+  { name: "Madina", avatar: "👩" },
+  { name: "Jasur", avatar: "🧑" },
+  { name: "Malika", avatar: "👩‍🦱" },
+];
+
+function App() {
+  const [user, setUser] =
+    useState<TelegramUser | null>(null);
+
+  const [balance, setBalance] = useState(0);
+
+  const [room, setRoom] =
+    useState("Asosiy xona");
+
+  const [showRooms, setShowRooms] =
+    useState(false);
+
+  const [rotation, setRotation] =
+    useState(0);
+
+  const [spinning, setSpinning] =
+    useState(false);
+
+  const [selectedPlayer, setSelectedPlayer] =
+    useState<string | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        setLoading(true);
+
+        initTelegram();
+
+        const telegramUser =
+          getTelegramUser();
+
+        if (telegramUser) {
+          setUser(telegramUser);
+        }
+
+        const initData =
+          getTelegramInitData();
+
+        if (!initData) {
+          setError(
+            "Mini App Telegram ichida ochilishi kerak."
+          );
+
+          return;
+        }
+
+        const authenticatedUser =
+          await authenticateTelegram(
+            initData
+          );
+
+        setBalance(
+          authenticatedUser.balance
+        );
+      } catch (err) {
+        console.error(err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Foydalanuvchini yuklashda xato."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUser();
+  }, []);
+
+  const handleBottleClick = () => {
+    if (
+      spinning ||
+      balance < 10
+    ) {
+      return;
+    }
+
+    haptic("heavy");
+
+    setSelectedPlayer(null);
+
+    setSpinning(true);
+
+    setBalance(
+      (current) => current - 10
+    );
+
+    const randomPlayer =
+      players[
+        Math.floor(
+          Math.random() *
+            players.length
+        )
+      ];
+
+    const extraRotation =
+      1440 +
+      Math.floor(
+        Math.random() * 360
+      );
+
+    setRotation(
+      (current) =>
+        current + extraRotation
+    );
+
+    setTimeout(() => {
+      setSpinning(false);
+
+      setSelectedPlayer(
+        randomPlayer.name
+      );
+
+      haptic("success");
+    }, 3000);
+  };
+
+  const handleRoomSelect = (
+    selectedRoom: {
+      id: string;
+      name: string;
+      players: number;
+      emoji: string;
+    }
+  ) => {
+    setRoom(
+      selectedRoom.name
+    );
+
+    setShowRooms(false);
+
+    haptic("light");
+  };
+
+  if (loading) {
+    return (
+      <main className="loading-screen">
+        <div className="loading-bottle">
+          🍾
+        </div>
+
+        <h2>
+          Yuklanmoqda...
+        </h2>
+
+        <p>
+          Profilingiz tayyorlanmoqda
+        </p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="error-screen">
+        <div className="error-icon">
+          ⚠️
+        </div>
+
+        <h2>
+          Xatolik
+        </h2>
+
+        <p>
+          {error}
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="home">
+      <header className="topbar">
+        <div className="profile">
+          <div className="avatar">
+            {user?.photo_url ? (
+              <img
+                src={user.photo_url}
+                alt={
+                  user.first_name
+                }
+              />
+            ) : (
+              <span>
+                {user?.first_name?.charAt(
+                  0
+                ) ?? "👤"}
+              </span>
+            )}
+          </div>
+
+          <div>
+            <p className="hello">
+              Salom 👋
+            </p>
+
+            <h2>
+              {user?.first_name ??
+                "Mehmon"}
+            </h2>
+          </div>
+        </div>
+
+        <div className="balance">
+          <span>🪙</span>
+
+          <strong>
+            {balance}
+          </strong>
+        </div>
+      </header>
+
+      <section className="room-card">
+        <div>
+          <span className="room-label">
+            Sizning xonangiz
+          </span>
+
+          <h3>
+            🏠 {room}
+          </h3>
+        </div>
+
+        <button
+          className="change-room"
+          onClick={() => {
+            setShowRooms(true);
+
+            haptic("light");
+          }}
+        >
+          Almashtirish
+        </button>
+      </section>
+
+      <section className="game-card">
         <div className="game-title">
           <span>🎲</span>
 
           <div>
-            <h1>Spin the Bottle</h1>
+            <h1>
+              Spin the Bottle
+            </h1>
 
             <p>
               {spinning
@@ -228,10 +495,17 @@ function App() {
         <div className="bottle-area">
           <button
             className={`bottle-button ${
-              spinning ? "spinning" : ""
+              spinning
+                ? "spinning"
+                : ""
             }`}
-            onClick={handleBottleClick}
-            disabled={spinning || balance < 10}
+            onClick={
+              handleBottleClick
+            }
+            disabled={
+              spinning ||
+              balance < 10
+            }
             aria-label="Shishani aylantirish"
             style={{
               transform: `rotate(${rotation}deg)`,
@@ -241,15 +515,16 @@ function App() {
           </button>
         </div>
 
-        {selectedPlayer && !spinning && (
-          <div className="selected-player">
-            🎯 Tanlangan o‘yinchi:
+        {selectedPlayer &&
+          !spinning && (
+            <div className="selected-player">
+              🎯 Tanlangan o‘yinchi:
 
-            <strong>
-              {selectedPlayer}
-            </strong>
-          </div>
-        )}
+              <strong>
+                {selectedPlayer}
+              </strong>
+            </div>
+          )}
 
         <p className="spin-cost">
           🪙 Bir aylantirish: 10
@@ -258,7 +533,9 @@ function App() {
 
       <section className="players">
         <div className="section-title">
-          <h2>👥 O‘yinchilar</h2>
+          <h2>
+            👥 O‘yinchilar
+          </h2>
 
           <span>
             {players.length} kishi
@@ -266,26 +543,36 @@ function App() {
         </div>
 
         <div className="player-list">
-          {players.map((player) => (
-            <div
-              className="player"
-              key={player.name}
-            >
-              <div className="player-avatar">
-                {player.avatar}
-              </div>
+          {players.map(
+            (player) => (
+              <div
+                className="player"
+                key={
+                  player.name
+                }
+              >
+                <div className="player-avatar">
+                  {player.avatar}
+                </div>
 
-              <span>{player.name}</span>
-            </div>
-          ))}
+                <span>
+                  {player.name}
+                </span>
+              </div>
+            )
+          )}
         </div>
       </section>
 
       {showRooms && (
         <RoomSelector
           currentRoom={room}
-          onSelect={handleRoomSelect}
-          onClose={() => setShowRooms(false)}
+          onSelect={
+            handleRoomSelect
+          }
+          onClose={() =>
+            setShowRooms(false)
+          }
         />
       )}
     </main>
